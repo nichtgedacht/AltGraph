@@ -1,0 +1,35 @@
+{
+	"default":"en",
+	"en":{
+		"appName":"AltGraph",
+		"title":"Setup Telemetry",
+		"label1":"Permanent Announcement",
+		"label2":"Battery Settings",
+		"label3":"Battery empty Alarm",
+		"label4":"Flight Time",
+		"voltWarn":"Low Battery Voltage",
+		"timeSw":"Start Flight Time",
+		"resSw":"Reset Switch",
+		"anVoltSw":"Switch Voltage Announcement",
+		"anAltiSw":"Switch Altitude Announcement",
+		"cellcnt":"Cell Count",
+		"voltAlarmThresh":"Batterie Alarm at Voltage",
+		"voltAlarmVoice":"Alarm Voltage"
+	},
+	"de":{
+		"appName":"AltGraph",
+		"title":"Einstellungen Telemetrie",
+		"label1":"Durchgehende Ansage",
+		"label2":"Batterie Einstellungen",
+		"label3":"Akku leer Alarm",
+		"label4":"Flugzeit",
+		"voltWarn":"Niedrige Akkuspannung", 
+		"timeSw":"Start Flugzeit",
+		"resSw":"Reset Schalter",
+		"anVoltSw":"Schalter Spannung Ansage",
+		"anAltiSw":"Schalter Höhe Ansage",
+		"cellcnt":"Anzahl Zellen",
+		"voltAlarmThresh":"Alarm bei Spannung",
+		"voltAlarmVoice":"Alarm Spannung"
+	}
+}
