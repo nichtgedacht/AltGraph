@@ -41,7 +41,7 @@ local percentList	=	{{3,0},{3.093,1},{3.196,2},{3.301,3},{3.401,4},{3.477,5},{3.
 -- Read translations
 local function setLanguage()
 	local lng=system.getLocale()
-	local file = io.readall("Apps/Lang/AltGraph.jsn")
+	local file = io.readall("Apps/Lang/AltiGraph.jsn")
 	local obj = json.decode(file)
 	if(obj) then
 		trans = obj[lng] or obj[obj.default]
@@ -250,7 +250,7 @@ local function setupForm(formID)
 	form.addSpacer(318,7)
 
 	form.addRow(1)
-	form.addLabel({label="AltGraph " .. Version .. " ", font=FONT_MINI, alignRight=true})
+	form.addLabel({label="AltiGraph " .. Version .. " ", font=FONT_MINI, alignRight=true})
     
 	collectgarbage()
 end
@@ -457,7 +457,7 @@ local function init(code)
 	collectgarbage()
 end
 
-Version = "1.0"
+Version = "1.1"
 setLanguage()
 collectgarbage()
 return {init=init, loop=loop, author="nichtgedacht", version=Version, name=trans.appName}

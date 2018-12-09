@@ -20,9 +20,9 @@ Lua script for Jeti DC/DS-16. Displays and graphs altitude data and shows some o
 ![screen021](https://raw.githubusercontent.com/nichtgedacht/AltGraph/master/Screen021.bmp)
 
 * Runs on DC/DS-16 with FW 4.27 and above
-* Two versions, AltGraphC is configurable for any Vario, AltGraphMV preconfigured for Mini-Vario
-* Tranlations DE and EN
-* File Lang/AltGraph.jsn is common
+* Two versions, AltiGraph.lua(lc) is configurable for any Vario, AltGraphMV.lua(lc) preconfigured for Mini-Vario
+* Translations DE and EN
+* File Lang/AltiGraph.jsn is common
 * Autoscale
 * Switchable and repeated announcements of voltage and altitude
 * Alarm voice for undervoltage

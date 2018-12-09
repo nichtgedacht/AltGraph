@@ -1,12 +1,14 @@
 {
 	"default":"en",
 	"en":{
-		"appName":"AltGraph",
+		"appName":"AltiGraph",
 		"title":"Setup Telemetry",
+		"label0":"Sensor and Parameter Select",
 		"label1":"Permanent Announcement",
 		"label2":"Battery Settings",
 		"label3":"Battery empty Alarm",
 		"label4":"Flight Time",
+		"paramAlti":"Parameter Altitude",
 		"voltWarn":"Low Battery Voltage",
 		"timeSw":"Start Flight Time",
 		"resSw":"Reset Switch",
@@ -17,12 +19,14 @@
 		"voltAlarmVoice":"Alarm Voltage"
 	},
 	"de":{
-		"appName":"AltGraph",
+		"appName":"AltiGraph",
 		"title":"Einstellungen Telemetrie",
+		"label0":"Sensor- und Parameterwahl",
 		"label1":"Durchgehende Ansage",
 		"label2":"Batterie Einstellungen",
 		"label3":"Akku leer Alarm",
 		"label4":"Flugzeit",
+		"paramAlti":"Parameter Höhe",
 		"voltWarn":"Niedrige Akkuspannung", 
 		"timeSw":"Start Flugzeit",
 		"resSw":"Reset Schalter",

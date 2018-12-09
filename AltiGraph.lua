@@ -41,7 +41,7 @@ local percentList	=	{{3,0},{3.093,1},{3.196,2},{3.301,3},{3.401,4},{3.477,5},{3.
 -- Read translations
 local function setLanguage()
 	local lng=system.getLocale()
-	local file = io.readall("Apps/Lang/AltGraph.jsn")
+	local file = io.readall("Apps/Lang/AltiGraph.jsn")
 	local obj = json.decode(file)
 	if(obj) then
 		trans = obj[lng] or obj[obj.default]
@@ -214,38 +214,35 @@ local function setupForm(formID)
 		
 	for index,sensor in ipairs(all_sensor_rows) do
 		
-		if ( not ( sensor.type == 5 or sensor.type == 9 ) ) then         -- no GPS no Date Time used
-			if ( sensor.param == 0) then
-				
-				sensor_label_list[#sensor_label_list + 1] = sensor.label -- list presented in select box
-				sensor_label_rows[#sensor_label_rows + 1] = sensor       -- to get id from this header table, it has same index as list
-				
-				if(sensor.id==sensorId ) then                            -- mem index of  
-					sensorIndex=#sensor_label_rows                       -- already selected entry for preselect in selectbox
-				end
+		if ( sensor.param == 0) then
 			
-				sensor_parm_lists[#sensor_parm_lists + 1] = {}           -- start new param list only containing label and unit as string
-			else                                                         -- subscript is number of param for current multisensor
-				sensor_parm_lists[#sensor_parm_lists][sensor.param] = sensor.label .. "  " .. sensor.unit -- list presented in select box
+			sensor_label_list[#sensor_label_list + 1] = sensor.label -- list presented in select box
+			sensor_label_rows[#sensor_label_rows + 1] = sensor       -- to get id from this header table, it has same index as list
+				
+			if(sensor.id==sensorId ) then                            -- mem index of  
+				sensorIndex=#sensor_label_rows                       -- already selected entry for preselect in selectbox
 			end
+			
+			sensor_parm_lists[#sensor_parm_lists + 1] = {}           -- start new param list only containing label and unit as string
+		else                                                         -- subscript is number of param for current multisensor
+			sensor_parm_lists[#sensor_parm_lists][sensor.param] = sensor.label .. "  " .. sensor.unit -- list presented in select box
 		end
 	end
 	
 	form.addRow(1)
-    form.addLabel({label="Sensor- und Parameterwahl",font=FONT_BOLD})
+    form.addLabel({label=trans.label0,font=FONT_BOLD})
 	    
     form.addRow(2)
     form.addLabel({label = "Sensor", width=200})
     form.addSelectbox(sensor_label_list, sensorIndex, true, sensorChanged)
-	
+		
 	if ( sensor_label_rows and sensorIndex > 0 ) then
-
 		form.addRow(2)
 		form.addLabel({label = "Parameter Vario", width=200})
 		form.addSelectbox(sensor_parm_lists[sensorIndex], vario_param, true, paramVarioChanged)
 		
 		form.addRow(2)
-		form.addLabel({label = "Parameter Höhe", width=200})
+		form.addLabel({label = trans.paramAlti, width=200})
 		form.addSelectbox(sensor_parm_lists[sensorIndex], altitude_param, true, paramAltitudeChanged)
 	end	
 		
@@ -302,7 +299,7 @@ local function setupForm(formID)
 	form.addSpacer(318,7)
 
 	form.addRow(1)
-	form.addLabel({label="AltGraph " .. Version .. " ", font=FONT_MINI, alignRight=true})
+	form.addLabel({label="AltiGraph " .. Version .. " ", font=FONT_MINI, alignRight=true})
     
 	collectgarbage()
 end
@@ -369,7 +366,7 @@ local function loop()
 	local i
 	
 	FlightTime()
-			
+	
 	txtelemetry = system.getTxTelemetry()
 	rx_voltage = txtelemetry.rx1Voltage
 	rx_percent = txtelemetry.rx1Percent
@@ -443,9 +440,7 @@ local function loop()
 						end
 						altitude_table[ ((time - 800) / 8 ) + 100 ] = real_altitude
 					end
-		     
 				end
-		     
 			end
 		end
 						
@@ -520,7 +515,7 @@ local function init(code)
 	collectgarbage()
 end
 
-Version = "1.0"
+Version = "1.1"
 setLanguage()
 collectgarbage()
 return {init=init, loop=loop, author="nichtgedacht", version=Version, name=trans.appName}
