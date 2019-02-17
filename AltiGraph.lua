@@ -378,7 +378,7 @@ local function loop()
 	rx_a2 = 88
 	rx_percent = 100
 	
-	rx_voltage = 3.9
+	-- rx_voltage = 3.9
 	
 	cell_voltage = rx_voltage / cell_count
 	
