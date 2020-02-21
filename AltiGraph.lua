@@ -37,7 +37,20 @@ local percentList	=	{{3,0},{3.093,1},{3.196,2},{3.301,3},{3.401,4},{3.477,5},{3.
 						{4.036,82},{4.044,83},{4.052,84},{4.062,85},{4.074,86},{4.085,87},{4.095,88},{4.105,89},{4.111,90},
 						{4.116,91},{4.12,92},{4.125,93},{4.129,94},{4.135,95},{4.145,96},{4.176,97},{4.179,98},{4.193,99},
 						{4.2,100}}
-                   
+
+-- can be used to translate raw values to what jeti displays
+--[[						
+if (rxa1 > 34) then a1 = 9 else
+if (rxa1 > 27) then a1 = 8 else
+if (rxa1 > 22) then a1 = 7 else
+if (rxa1 > 18) then a1 = 6 else
+if (rxa1 > 14) then a1 = 5 else
+if (rxa1 > 10) then a1 = 4 else
+if (rxa1 > 6) then a1 = 3 else
+if (rxa1 > 3) then a1 = 2 else
+if (rxa1 > 0) then a1 = 1 else a1 = 0
+--]]
+
 -- Read translations
 local function setLanguage()
 	local lng=system.getLocale()
@@ -384,10 +397,12 @@ local function loop()
 	
 	remaining_capacity_percent = get_capacity_remaining()
 	
-	-- Read Sensor Parameter 1 Climb
 	sensor = system.getSensorValueByID(sensorId, vario_param)
 	if(sensor and sensor.valid ) then
 		climb = sensor.value
+		if ( climb == nil ) then
+			climb = 0.0
+		end
 	else
 		climb = 0.0
 		display_climb = 0.0
@@ -395,7 +410,10 @@ local function loop()
 	sensor = system.getSensorValueByID(sensorId, altitude_param)
 	if(sensor and sensor.valid ) then
 		altitude = sensor.value
-						
+		if (altitude == nil ) then
+			altitude = 0.0
+		end
+		
 		real_altitude = altitude - altitude_offset
 		     
 		if ( real_altitude < 0.0 ) then real_altitude = 0 end     
@@ -494,7 +512,6 @@ end
 local function init(code)
 	model = system.getProperty("Model")
 	owner = system.getUserName()
-	--sensorId = system.pLoad("sensorId")
 	cell_count = system.pLoad("cell_count",1)
 	voltage_alarm_thresh = system.pLoad("voltage_alarm_thresh",0)
 	voltage_alarm_dec_thresh = voltage_alarm_thresh / 10             
@@ -505,8 +522,8 @@ local function init(code)
 	anVoltSw = system.pLoad("anVoltSw")
 	altitude_table[0] = 0.0
 	
-	vario_param = system.pLoad("vario_param", 2)
-	altitude_param = system.pLoad("altitude_param", 2)
+	vario_param = system.pLoad("vario_param", 1)
+	altitude_param = system.pLoad("altitude_param", 1)
 	sensorId = system.pLoad("sensorId", 1)
 
 	system.registerForm(1, MENU_APPS, trans.appName, setupForm)
