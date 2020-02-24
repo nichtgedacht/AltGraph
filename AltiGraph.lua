@@ -21,8 +21,13 @@ local altitude, real_altitude, altitude_offset, max_altitude, altitude_scale = 0
 local altitude_table = {}
 local resetOff, tick, display_tick = false, true, true
 local display_climb, display_climb_list = 0.0, {}
-local sensor_label_rows
 local sensorId, vario_param, altitude_param
+local all_sensor_rows
+local sensorIndex = -1
+local sensor_id_list = {}
+local sensor_label_list = {}
+local sensor_param_lists = {}
+
 
 -- maps cell voltages to remainig capacity
 local percentList	=	{{3,0},{3.093,1},{3.196,2},{3.301,3},{3.401,4},{3.477,5},{3.544,6},{3.601,7},{3.637,8},{3.664,9},
@@ -50,7 +55,7 @@ if (rxa1 > 6) then a1 = 3 else
 if (rxa1 > 3) then a1 = 2 else
 if (rxa1 > 0) then a1 = 1 else a1 = 0
 --]]
-
+                   
 -- Read translations
 local function setLanguage()
 	local lng=system.getLocale()
@@ -157,8 +162,14 @@ local function Page1(width, height)
 end
 
 local function sensorChanged(value)
-	sensorId  = sensor_label_rows[value].id
+	
+	if ( not sensor_id_list[1] ) then	-- no sensors found
+		return
+	end
+	
+	sensorId  = sensor_id_list[value]
 	system.pSave("sensorId", sensorId)
+	sensorIndex = value
 	vario_param = 1     -- prevent error if previous index was higher than possible in this new sensor
 	altitude_param = 1  -- prevent error if previous index was higher than possible in this new sensor
 	form.reinit()
@@ -216,32 +227,25 @@ local function voltage_alarm_voiceChanged(value)
 end
 
 local function setupForm(formID)
-
-	local sensor_label_list = {}
-	local sensorIndex=-1
-	local sensor_parm_lists = {}
-    
-	local all_sensor_rows = system.getSensors()
 	
-	sensor_label_rows = {}  -- scope: this script
-		
-	for index,sensor in ipairs(all_sensor_rows) do
-		
-		if ( sensor.param == 0) then
-			
-			sensor_label_list[#sensor_label_list + 1] = sensor.label -- list presented in select box
-			sensor_label_rows[#sensor_label_rows + 1] = sensor       -- to get id from this header table, it has same index as list
+	local i, sensor
+	
+	if ( not sensor_id_list[1] ) then	-- sensors not yet checked
 				
-			if(sensor.id==sensorId ) then                            -- mem index of  
-				sensorIndex=#sensor_label_rows                       -- already selected entry for preselect in selectbox
+		for i,sensor in ipairs(all_sensor_rows) do
+			if (sensor.param == 0) then	-- new multisensor/device
+				sensor_label_list[#sensor_label_list + 1] = sensor.label -- list presented in sensor select box
+				sensor_id_list[#sensor_id_list + 1] = sensor.id          -- to get id from if sensor changed, same numeric indexing
+				sensor_param_lists[#sensor_param_lists + 1] = {}           -- start new param list only containing label and unit as string
+			else                                                         -- subscript is number of param for current multisensor/device
+				sensor_param_lists[#sensor_param_lists][sensor.param] = sensor.label .. "  " .. sensor.unit -- list presented in param select box
 			end
-			
-			sensor_parm_lists[#sensor_parm_lists + 1] = {}           -- start new param list only containing label and unit as string
-		else                                                         -- subscript is number of param for current multisensor
-			sensor_parm_lists[#sensor_parm_lists][sensor.param] = sensor.label .. "  " .. sensor.unit -- list presented in select box
 		end
-	end
+	end	
 	
+	all_sensor_rows = {} -- save memory
+	collectgarbage()
+		
 	form.addRow(1)
     form.addLabel({label=trans.label0,font=FONT_BOLD})
 	    
@@ -249,14 +253,15 @@ local function setupForm(formID)
     form.addLabel({label = "Sensor", width=200})
     form.addSelectbox(sensor_label_list, sensorIndex, true, sensorChanged)
 		
-	if ( sensor_label_rows and sensorIndex > 0 ) then
+
+	if ( sensor_id_list and sensorIndex > 0 ) then	
 		form.addRow(2)
 		form.addLabel({label = "Parameter Vario", width=200})
-		form.addSelectbox(sensor_parm_lists[sensorIndex], vario_param, true, paramVarioChanged)
+		form.addSelectbox(sensor_param_lists[sensorIndex], vario_param, true, paramVarioChanged)
 		
 		form.addRow(2)
 		form.addLabel({label = trans.paramAlti, width=200})
-		form.addSelectbox(sensor_parm_lists[sensorIndex], altitude_param, true, paramAltitudeChanged)
+		form.addSelectbox(sensor_param_lists[sensorIndex], altitude_param, true, paramAltitudeChanged)
 	end	
 		
 	form.setTitle(trans.title)
@@ -398,7 +403,7 @@ local function loop()
 	remaining_capacity_percent = get_capacity_remaining()
 	
 	sensor = system.getSensorValueByID(sensorId, vario_param)
-	if(sensor and sensor.valid ) then
+	if(sensor and sensor.valid) then
 		climb = sensor.value
 		if ( climb == nil ) then
 			climb = 0.0
@@ -406,9 +411,9 @@ local function loop()
 	else
 		climb = 0.0
 		display_climb = 0.0
-	end	
+	end
 	sensor = system.getSensorValueByID(sensorId, altitude_param)
-	if(sensor and sensor.valid ) then
+	if(sensor and sensor.valid) then
 		altitude = sensor.value
 		if (altitude == nil ) then
 			altitude = 0.0
@@ -522,6 +527,7 @@ local function init(code)
 	anVoltSw = system.pLoad("anVoltSw")
 	altitude_table[0] = 0.0
 	
+	all_sensor_rows = system.getSensors()
 	vario_param = system.pLoad("vario_param", 1)
 	altitude_param = system.pLoad("altitude_param", 1)
 	sensorId = system.pLoad("sensorId", 1)
@@ -532,7 +538,7 @@ local function init(code)
 	collectgarbage()
 end
 
-Version = "1.1"
+Version = "1.2"
 setLanguage()
 collectgarbage()
 return {init=init, loop=loop, author="nichtgedacht", version=Version, name=trans.appName}
