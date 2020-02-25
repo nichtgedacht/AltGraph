@@ -230,12 +230,14 @@ local function setupForm(formID)
 	
 	local i, sensor
 	
-	if ( not sensor_id_list[1] ) then	-- sensors not yet checked
-				
+	if ( not sensor_id_list[1] ) then	-- sensors not yet checked or rebooted
 		for i,sensor in ipairs(all_sensor_rows) do
 			if (sensor.param == 0) then	-- new multisensor/device
 				sensor_label_list[#sensor_label_list + 1] = sensor.label -- list presented in sensor select box
 				sensor_id_list[#sensor_id_list + 1] = sensor.id          -- to get id from if sensor changed, same numeric indexing
+				if (sensor.id == sensorId) then
+					sensorIndex = #sensor_id_list
+				end
 				sensor_param_lists[#sensor_param_lists + 1] = {}           -- start new param list only containing label and unit as string
 			else                                                         -- subscript is number of param for current multisensor/device
 				sensor_param_lists[#sensor_param_lists][sensor.param] = sensor.label .. "  " .. sensor.unit -- list presented in param select box
