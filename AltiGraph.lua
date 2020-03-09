@@ -22,8 +22,7 @@ local altitude_table = {}
 local resetOff, tick, display_tick = false, true, true
 local display_climb, display_climb_list = 0.0, {}
 local sensorId, vario_param, altitude_param
-local all_sensor_rows
-local sensorIndex = -1
+local sensorIndex = 0
 local sensor_id_list = {}
 local sensor_label_list = {}
 local sensor_param_lists = {}
@@ -170,8 +169,8 @@ local function sensorChanged(value)
 	sensorId  = sensor_id_list[value]
 	system.pSave("sensorId", sensorId)
 	sensorIndex = value
-	vario_param = 1     -- prevent error if previous index was higher than possible in this new sensor
-	altitude_param = 1  -- prevent error if previous index was higher than possible in this new sensor
+	vario_param = 0     -- prevent error if previous index was higher than possible in this new sensor
+	altitude_param = 0  -- prevent error if previous index was higher than possible in this new sensor
 	form.reinit()
 end
 
@@ -231,7 +230,7 @@ local function setupForm(formID)
 	local i, sensor
 	
 	if ( not sensor_id_list[1] ) then	-- sensors not yet checked or rebooted
-		for i,sensor in ipairs(all_sensor_rows) do
+		for i,sensor in ipairs(system.getSensors()) do
 			if (sensor.param == 0) then	-- new multisensor/device
 				sensor_label_list[#sensor_label_list + 1] = sensor.label -- list presented in sensor select box
 				sensor_id_list[#sensor_id_list + 1] = sensor.id          -- to get id from if sensor changed, same numeric indexing
@@ -244,25 +243,22 @@ local function setupForm(formID)
 			end
 		end
 	end	
-	
-	all_sensor_rows = {} -- save memory
-	collectgarbage()
-		
+			
 	form.addRow(1)
     form.addLabel({label=trans.label0,font=FONT_BOLD})
 	    
     form.addRow(2)
-    form.addLabel({label = "Sensor", width=200})
+    form.addLabel({label = "Sensor"})
     form.addSelectbox(sensor_label_list, sensorIndex, true, sensorChanged)
 		
 
 	if ( sensor_id_list and sensorIndex > 0 ) then	
 		form.addRow(2)
-		form.addLabel({label = "Parameter Vario", width=200})
+		form.addLabel({label = "Parameter Vario"})
 		form.addSelectbox(sensor_param_lists[sensorIndex], vario_param, true, paramVarioChanged)
 		
 		form.addRow(2)
-		form.addLabel({label = trans.paramAlti, width=200})
+		form.addLabel({label = trans.paramAlti})
 		form.addSelectbox(sensor_param_lists[sensorIndex], altitude_param, true, paramAltitudeChanged)
 	end	
 		
@@ -529,10 +525,9 @@ local function init(code)
 	anVoltSw = system.pLoad("anVoltSw")
 	altitude_table[0] = 0.0
 	
-	all_sensor_rows = system.getSensors()
-	vario_param = system.pLoad("vario_param", 1)
-	altitude_param = system.pLoad("altitude_param", 1)
-	sensorId = system.pLoad("sensorId", 1)
+	vario_param = system.pLoad("vario_param", 0)
+	altitude_param = system.pLoad("altitude_param", 0)
+	sensorId = system.pLoad("sensorId", 0)
 
 	system.registerForm(1, MENU_APPS, trans.appName, setupForm)
 	system.registerTelemetry(1, trans.appName .. "   " .. model, 4, Page1) --registers a full size Window
@@ -540,7 +535,7 @@ local function init(code)
 	collectgarbage()
 end
 
-Version = "1.2"
+Version = "1.3"
 setLanguage()
 collectgarbage()
 return {init=init, loop=loop, author="nichtgedacht", version=Version, name=trans.appName}
