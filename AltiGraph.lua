@@ -7,7 +7,7 @@ local rx_voltage = 0.00
 local capacity, remaining_capacity_percent = 0, 100
 local mincur, maxcur = 99.9, 0
 local minvtg, maxvtg = 99, 0
-local time, lastTime, newTime, time_scale, lastDisplayTime = 0, 0, 0, 1, 0
+local time, ancorTime, newTime, time_scale = 0, 0, 0, 1
 local std, min, sec = 0, 0, 0
 local minrxv, maxrxv, minrxa, maxrxa = 9.9, 0.0, 9.9, 0.0
 local next_altitude_announcement, next_voltage_announcement = 0, 0
@@ -15,11 +15,13 @@ local voltage_alarm_voice
 local voltage_alarm_thresh, voltage_alarm_dec_thresh
 local next_voltage_alarm = 0
 local rx_a1, rx_a2, rx_percent = 0, 0, 0
+local resetSw_val = 0
 local txtelemetry
 local climb = 0.0
 local altitude, real_altitude, altitude_offset, max_altitude, altitude_scale = 0.0, 0.0, 0.0, 0.0, 20
 local altitude_table = {}
-local resetOff, tick, display_tick = false, true, true
+local resetOff, tick, display_tick = true, true, true
+local tickOffset = 0
 local display_climb, display_climb_list = 0.0, {}
 local sensorId, vario_param, altitude_param
 local sensorIndex = 0
@@ -320,39 +322,41 @@ local function setupForm(formID)
 	collectgarbage()
 end
 
--- Fligt time
+-- Flight time neu
 local function FlightTime()
+        
+	local timeSw_val = system.getInputsVal(timeSw)
+	resetSw_val = system.getInputsVal(resSw)
+        
 	newTime = system.getTimeCounter()
-	local ltimeSw = system.getInputsVal(timeSw)
-	resetSw = system.getInputsVal(resSw)
-	     
-	if (ltimeSw ~= 1) then
-		lastTime = newTime -- properly start of first interval
-	end
+   	
+	if (timeSw_val == 1) then
+		
+		timeDiff = newTime - (ancorTime + tickOffset)
+		
+		if ( timeDiff >= 500 and timeDiff < 1000) then
+			display_tick = true
+		end	
 
-	if (newTime >= lastDisplayTime + 500) then
-		display_tick = true
-		lastDisplayTime = newTime
-	end	
-	
-	if newTime >= (lastTime + 1000) then  -- one second
-		lastTime = newTime
-		if (ltimeSw == 1) then 
-			time = time + 1
+		if ( timeDiff >= 1000 ) then
+			display_tick = true
 			tick = true
+			time = time + 1
 			if ( time == 360000 ) then -- max 99 hours
 				time = 0
 			end	
+			tickOffset = tickOffset + 1000
+			std = math.floor(time / 3600)
+			min = math.floor(time / 60) - std * 60
+			sec = time % 60
 		end
-	end
-	
-	std = math.floor(time / 3600)
-	min = math.floor(time / 60) - std * 60
-	sec = time % 60
-	
+	else
+		ancorTime = newTime - time * 1000  -- keep previous time     
+	end     
+
 	collectgarbage()
 end
-    
+
 -- Count percentage from cell voltage
 local function get_capacity_remaining()
 	result=0
@@ -389,12 +393,6 @@ local function loop()
 	
 	rx_a1 = txtelemetry.RSSI[1]
 	rx_a2 = txtelemetry.RSSI[2]
-	
-	rx_a1 = 66
-	rx_a2 = 88
-	rx_percent = 100
-	
-	-- rx_voltage = 3.9
 	
 	cell_voltage = rx_voltage / cell_count
 	
@@ -489,17 +487,22 @@ local function loop()
 		real_altitude = 0.0
 	end
 	
-	if (resetSw == 1) then    -- use the edge only because momentary switch is used for flight mode too
-		if ( resetOff ) then  -- transition to reset position (edge)
+	if (resetSw_val == 1) then	-- use the edge only because momentary switch is used for flight mode too
+		if ( resetOff ) then	-- transition to reset position (edge)
+			resetOff = false
 			altitude_table = {}
 		    altitude_table[0] = 0.0 
 			altitude_offset = altitude;
 			max_altitude = 0
 		    time = 0
-			lastTime = system.getTimeCounter()
-			altitude_scale = 20
-		    resetOff = false
+			std = 0
+			min = 0
+			sec = 0
+			ancorTime = newTime
+			tickOffset = 0
 			tick = true
+			display_tick = true
+			altitude_scale = 20
 			next_altitude_announcement = 0
 			next_voltage_announcement = 0
 			next_voltage_alarm = 0
@@ -524,6 +527,7 @@ local function init(code)
 	anAltiSw = system.pLoad("anAltiSw")
 	anVoltSw = system.pLoad("anVoltSw")
 	altitude_table[0] = 0.0
+	ancorTime = system.getTimeCounter()
 	
 	vario_param = system.pLoad("vario_param", 0)
 	altitude_param = system.pLoad("altitude_param", 0)
@@ -535,7 +539,7 @@ local function init(code)
 	collectgarbage()
 end
 
-Version = "1.3"
+Version = "1.4"
 setLanguage()
 collectgarbage()
 return {init=init, loop=loop, author="nichtgedacht", version=Version, name=trans.appName}
