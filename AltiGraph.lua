@@ -19,8 +19,9 @@ local resetSw_val = 0
 local txtelemetry
 local climb = 0.0
 local altitude, real_altitude, altitude_offset, max_altitude, altitude_scale = 0.0, 0.0, 0.0, 0.0, 20
+local average_list = {}
 local altitude_table = {}
-local resetOff, tick, display_tick = true, true, true
+local resetOff, tick, display_tick = true, false, false
 local tickOffset = 0
 local display_climb, display_climb_list = 0.0, {}
 local sensorId, vario_param, altitude_param
@@ -379,6 +380,15 @@ local function get_capacity_remaining()
 	return result
 end
 
+local function average(list)
+	local i 
+	local sum = 0
+	for i in next, list do
+		sum = sum + list[i]
+	end
+	return sum / #list
+end
+
 local function loop()
 
 	local anAltitudeGo = system.getInputsVal(anAltiSw)
@@ -411,6 +421,7 @@ local function loop()
 	sensor = system.getSensorValueByID(sensorId, altitude_param)
 	if(sensor and sensor.valid) then
 		altitude = sensor.value
+	
 		if (altitude == nil ) then
 			altitude = 0.0
 		end
@@ -423,6 +434,7 @@ local function loop()
 		 
 		if ( tick ) then
 			tick = false
+			
 			if ( time <= 200 ) then
 				time_scale = 1
 				if ( max_altitude > 5 ) then
@@ -430,10 +442,13 @@ local function loop()
 				end
 				altitude_table[time] = real_altitude
 			else
-				if ( #altitude_table == 200 and time <= 1600 ) then
+				average_list[#average_list + 1] = real_altitude
+				if ( #altitude_table == 200 and time <= 6400 ) then
 					for i = 1, 100 do
+						altitude_table[i-1] = (altitude_table[i-1] + altitude_table[i]) / 2
 						table.remove(altitude_table, i)
 					end
+					average_list = {}
 				end
 				if ( time <= 400 ) then
 					time_scale = 2
@@ -441,7 +456,8 @@ local function loop()
 						if ( max_altitude > 5 ) then
 							altitude_scale = 100 / max_altitude
 						end
-						altitude_table[ ((time - 200) / 2 ) + 100 ] = real_altitude
+						altitude_table[ ((time - 200) / 2 ) + 100 ] = average(average_list)
+						average_list = {}
 					end
 				elseif ( time <= 800 ) then
 					time_scale = 4
@@ -449,7 +465,8 @@ local function loop()
 						if ( max_altitude > 5 ) then
 							altitude_scale = 100 / max_altitude
 						end
-						altitude_table[ ((time - 400) / 4 ) + 100 ] = real_altitude
+						altitude_table[ ((time - 400) / 4 ) + 100 ] = average(average_list)
+						average_list = {}
 					end
 				elseif ( time <= 1600 ) then
 					time_scale = 8
@@ -457,7 +474,26 @@ local function loop()
 						if ( max_altitude > 5 ) then
 							altitude_scale = 100 / max_altitude
 						end
-						altitude_table[ ((time - 800) / 8 ) + 100 ] = real_altitude
+						altitude_table[ ((time - 800) / 8 ) + 100 ] = average(average_list)
+						average_list = {}
+					end
+				elseif ( time <= 3200 ) then
+					time_scale = 16
+					if ( time % 16 == 0 ) then
+						if ( max_altitude > 5 ) then
+							altitude_scale = 100 / max_altitude
+						end
+						altitude_table[ ((time - 1600) / 16 ) + 100 ] = average(average_list)
+						average_list = {}
+					end
+				elseif ( time <= 6400 ) then
+					time_scale = 32
+					if ( time % 32 == 0 ) then
+						if ( max_altitude > 5 ) then
+							altitude_scale = 100 / max_altitude
+						end
+						altitude_table[ ((time - 3200) / 32 ) + 100 ] = average(average_list)
+						average_list = {}
 					end
 				end
 			end
@@ -500,12 +536,11 @@ local function loop()
 			sec = 0
 			ancorTime = newTime
 			tickOffset = 0
-			tick = true
-			display_tick = true
-			altitude_scale = 20
+			altitude_scale = 20				-- 5m full scale
 			next_altitude_announcement = 0
 			next_voltage_announcement = 0
 			next_voltage_alarm = 0
+			average_list = {}
 		end
 	else
 		resetOff = true -- reset transition to reset position
@@ -539,7 +574,7 @@ local function init(code)
 	collectgarbage()
 end
 
-Version = "1.4"
+Version = "1.5"
 setLanguage()
 collectgarbage()
 return {init=init, loop=loop, author="nichtgedacht", version=Version, name=trans.appName}
