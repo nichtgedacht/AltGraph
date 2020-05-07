@@ -1,5 +1,6 @@
 collectgarbage()
 
+local Version = "1.6"
 local cell_voltage, cell_count = 0.0, 1
 local model, owner = " ", " "
 local trans, anAltiSw, anVoltSw, anAltitudeGo, anVoltGo
@@ -85,6 +86,8 @@ local function Page1()
 
 	local i, v, l, clmb
 	local sum_clmb = 0.0
+	
+	
 
 	if ( #display_climb_list == 10 ) then
 		table.remove(display_climb_list, 1)
@@ -131,8 +134,11 @@ local function Page1()
 	lcd.drawText(263 - (lcd.getTextWidth(FONT_MINI, string.format("%d", time_scale * 150 ))), 111, string.format("%d", time_scale * 150), FONT_MINI)
 	lcd.drawText(313 - (lcd.getTextWidth(FONT_MINI, string.format("%d", time_scale * 200 ))), 111, string.format("%d", time_scale * 200), FONT_MINI)
 		
+	-- draw before graph prevent destroying points of the graph 
+	lcd.drawFilledRectangle(115 + i_max, 107 - math.floor( (max_table_altitude * altitude_scale) + 0.5), 1, math.floor( (max_table_altitude * altitude_scale) + 0.5), FONT_GRAYED)
+	
+	max_table_altitude = 0	-- reinit search of maximum, because data could be compressed inbetween
 	-- Graph
-	max_table_altitude = 0	-- reinit search of maximum, because data could be compressed inbetween  
 	for i,v in pairs(altitude_table) do
 		
 		if ( i > 0 and altitude_table[i] and altitude_table[i - 1] ) then
@@ -141,13 +147,11 @@ local function Page1()
 				max_table_altitude = altitude_table[i]
 				i_max = i
 			end
-			
+
 			lcd.drawLine(115 + i - 1,  107 - math.floor( (altitude_table[i - 1] * altitude_scale ) + 0.5), 115 + i, 107 - math.floor( (v * altitude_scale) + 0.5))
 			
 		end			
 	end
-	
-	lcd.drawFilledRectangle(115 + i_max, 107 - math.floor( (max_table_altitude * altitude_scale) + 0.5), 1, math.floor( (max_table_altitude * altitude_scale) + 0.5), FONT_GRAYED)
 	
 	-- Battery
 	lcd.drawRectangle( 10, 122, 50, 16)
@@ -434,6 +438,7 @@ local function loop()
 	end
 	sensor = system.getSensorValueByID(sensorId, altitudeSens)
 	if(sensor and sensor.valid) then
+
 		altitude = sensor.value
 			
 		if (altitude == nil ) then
@@ -595,7 +600,6 @@ local function init()
 	collectgarbage()
 end
 
-Version = "1.6"
 setLanguage()
 collectgarbage()
 return {init=init, loop=loop, author="nichtgedacht", version=Version, name=trans.appName}
