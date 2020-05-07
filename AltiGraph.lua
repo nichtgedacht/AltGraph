@@ -4,6 +4,7 @@ local cell_voltage, cell_count = 0.0, 1
 local model, owner = " ", " "
 local trans, anAltiSw, anVoltSw, anAltitudeGo, anVoltGo
 local rx_voltage = 0.00
+local display_rx_voltage, rx_voltage_list = 0.0, {}
 local capacity, remaining_capacity_percent = 0, 100
 local mincur, maxcur = 99.9, 0
 local minvtg, maxvtg = 99, 0
@@ -17,18 +18,20 @@ local next_voltage_alarm = 0
 local rx_a1, rx_a2, rx_percent = 0, 0, 0
 local resetSw_val = 0
 local txtelemetry
-local climb = 0.0
-local altitude, real_altitude, altitude_offset, max_altitude, altitude_scale = 0.0, 0.0, 0.0, 0.0, 20
-local average_list = {}
+local altitude, real_altitude, graph_altitude, altitude_offset, max_altitude, altitude_scale = 0.0, 0.0, 0.0, 0.0, 0.0, 20
+local first_average_list, average_list = {}, {}
 local altitude_table = {}
+local max_table_altitude = 0
 local resetOff, tick, display_tick = true, false, false
 local tickOffset = 0
+local climb = 0.0
 local display_climb, display_climb_list = 0.0, {}
-local sensorId, vario_param, altitude_param
-local sensorIndex = 0
-local sensor_id_list = {}
-local sensor_label_list = {}
-local sensor_param_lists = {}
+local sensorId, varioSens, altitudeSens
+local deviceIndex = 0
+local deviceId_list = {}
+local deviceLabel_list = {}
+local sensor_lists = {}
+local i_max = 0
 
 
 -- maps cell voltages to remainig capacity
@@ -68,62 +71,83 @@ local function setLanguage()
 	end
 end
 
+local function average(list)
+	local i 
+	local sum = 0
+	for i in next, list do
+		sum = sum + list[i]
+	end
+	return sum / #list
+end
+
 -- Telemetry Page1
-local function Page1(width, height)
-	
+local function Page1()
+
 	local i, v, l, clmb
 	local sum_clmb = 0.0
-	
-	if ( #display_climb_list == 5 ) then
+
+	if ( #display_climb_list == 10 ) then
 		table.remove(display_climb_list, 1)
 	end	
-	
-	display_climb_list[#display_climb_list + 1] = climb
-		
-	if ( display_tick ) then
-		
-		for i,clmb in ipairs(display_climb_list) do
-			sum_clmb = sum_clmb + clmb
-		end
 
-		display_climb = sum_clmb / #display_climb_list
-		display_tick = false
-	end	
+	display_climb_list[#display_climb_list + 1] = climb
 	
+	if ( #rx_voltage_list == 10 ) then
+		table.remove(rx_voltage_list, 1)
+	end	
+
+	rx_voltage_list[#rx_voltage_list + 1] = rx_voltage	
+
+	if ( display_tick ) then
+		display_tick = false
+		display_climb = average(display_climb_list)
+		display_rx_voltage = average(rx_voltage_list)
+	end	
+
 	-- Coordinates
 	lcd.drawLine(115, 2, 115, 107)
 	lcd.drawLine(115, 107, 315, 107)
 	
 	lcd.drawLine(115, 7, 107, 7)
-	
+
 	-- ruler
 	for  i = 0, 100 do
-		if ( i % 5 == 0 ) then
-			l = 6
+		if ( i % 50 == 0 ) then
+			l = 10
+		elseif (i % 25 == 0 ) then
+			l = 7
+		elseif (i % 5 == 0 ) then	
+			l = 4
 		else
 			l = 2
 		end
-		if ( i % 10 == 0 ) then
-			l = 10
-		end
-		lcd.drawLine(115 + 10 * i, 107, 115 + 10 * i, 107 + l)
+		
+		lcd.drawLine(115 + 2 * i, 107, 115 + 2 * i, 107 + l)
 	end
-	
+
 	lcd.drawText(107, 109, "0", FONT_MINI)    
-	lcd.drawText(163 - (lcd.getTextWidth(FONT_MINI, string.format("%d", time_scale * 50 ))), 109, string.format("%d", time_scale * 50), FONT_MINI)
-	lcd.drawText(212 - (lcd.getTextWidth(FONT_MINI, string.format("%d", time_scale * 100))), 109, string.format("%d", time_scale * 100), FONT_MINI)
-	lcd.drawText(263 - (lcd.getTextWidth(FONT_MINI, string.format("%d", time_scale * 150 ))), 109, string.format("%d", time_scale * 150), FONT_MINI)
-	lcd.drawText(313 - (lcd.getTextWidth(FONT_MINI, string.format("%d", time_scale * 200 ))), 109, string.format("%d", time_scale * 200), FONT_MINI)
+	lcd.drawText(163 - (lcd.getTextWidth(FONT_MINI, string.format("%d", time_scale * 50 ))), 111, string.format("%d", time_scale * 50), FONT_MINI)
+	lcd.drawText(212 - (lcd.getTextWidth(FONT_MINI, string.format("%d", time_scale * 100))), 111, string.format("%d", time_scale * 100), FONT_MINI)
+	lcd.drawText(263 - (lcd.getTextWidth(FONT_MINI, string.format("%d", time_scale * 150 ))), 111, string.format("%d", time_scale * 150), FONT_MINI)
+	lcd.drawText(313 - (lcd.getTextWidth(FONT_MINI, string.format("%d", time_scale * 200 ))), 111, string.format("%d", time_scale * 200), FONT_MINI)
 		
 	-- Graph
+	max_table_altitude = 0	-- reinit search of maximum, because data could be compressed inbetween  
 	for i,v in pairs(altitude_table) do
 		
 		if ( i > 0 and altitude_table[i] and altitude_table[i - 1] ) then
+			
+			if ( max_table_altitude < altitude_table[i] ) then
+				max_table_altitude = altitude_table[i]
+				i_max = i
+			end
 			
 			lcd.drawLine(115 + i - 1,  107 - math.floor( (altitude_table[i - 1] * altitude_scale ) + 0.5), 115 + i, 107 - math.floor( (v * altitude_scale) + 0.5))
 			
 		end			
 	end
+	
+	lcd.drawFilledRectangle(115 + i_max, 107 - math.floor( (max_table_altitude * altitude_scale) + 0.5), 1, math.floor( (max_table_altitude * altitude_scale) + 0.5), FONT_GRAYED)
 	
 	-- Battery
 	lcd.drawRectangle( 10, 122, 50, 16)
@@ -131,7 +155,7 @@ local function Page1(width, height)
 	lcd.drawFilledRectangle( 10, 122, math.floor(remaining_capacity_percent / 2 + 0.5), 16)
 	-- Voltage
 	lcd.drawText(50, 141, "V", FONT_NORMAL)
-	lcd.drawText(48 - (lcd.getTextWidth(FONT_BIG, string.format("%1.2f", rx_voltage))), 139, string.format("%1.2f", rx_voltage), FONT_BIG)
+	lcd.drawText(48 - (lcd.getTextWidth(FONT_BIG, string.format("%1.2f", display_rx_voltage))), 139, string.format("%1.2f", display_rx_voltage), FONT_BIG)
 	
 	-- Antenna
 	lcd.drawText(83, 139, "A:", FONT_BIG)
@@ -165,26 +189,26 @@ end
 
 local function sensorChanged(value)
 	
-	if ( not sensor_id_list[1] ) then	-- no sensors found
+	if ( not deviceId_list[1] ) then	-- no sensors found
 		return
 	end
 	
-	sensorId  = sensor_id_list[value]
+	sensorId  = deviceId_list[value]
 	system.pSave("sensorId", sensorId)
-	sensorIndex = value
-	vario_param = 0     -- prevent error if previous index was higher than possible in this new sensor
-	altitude_param = 0  -- prevent error if previous index was higher than possible in this new sensor
+	deviceIndex = value
+	varioSens = 0     -- prevent error if previous index was higher than possible in this new sensor
+	altitudeSens = 0  -- prevent error if previous index was higher than possible in this new sensor
 	form.reinit()
 end
 
-local function paramVarioChanged(value)
-	vario_param = value
-	system.pSave("vario_param", vario_param)
+local function sensVarioChanged(value)
+	varioSens = value
+	system.pSave("varioSens", varioSens)
 end
 
-local function paramAltitudeChanged(value)
-	altitude_param = value
-	system.pSave("altitude_param", altitude_param)
+local function sensAltitudeChanged(value)
+	altitudeSens = value
+	system.pSave("altitudeSens", altitudeSens)
 end	
 
 local function capacityChanged(value)
@@ -228,21 +252,21 @@ local function voltage_alarm_voiceChanged(value)
 	system.pSave("voltage_alarm_voice", voltage_alarm_voice)
 end
 
-local function setupForm(formID)
+local function setupForm()
 	
-	local i, sensor
+	local i, sensor	--	sensor is a list of sensor lists (parameters) 
 	
-	if ( not sensor_id_list[1] ) then	-- sensors not yet checked or rebooted
+	if ( not deviceId_list[1] ) then	-- sensors not yet checked or rebooted
 		for i,sensor in ipairs(system.getSensors()) do
 			if (sensor.param == 0) then	-- new multisensor/device
-				sensor_label_list[#sensor_label_list + 1] = sensor.label -- list presented in sensor select box
-				sensor_id_list[#sensor_id_list + 1] = sensor.id          -- to get id from if sensor changed, same numeric indexing
+				deviceLabel_list[#deviceLabel_list + 1] = sensor.label	-- list presented in device select box
+				deviceId_list[#deviceId_list + 1] = sensor.id			-- to get id from if sensor changed, same numeric indexing
 				if (sensor.id == sensorId) then
-					sensorIndex = #sensor_id_list
+					deviceIndex = #deviceId_list
 				end
-				sensor_param_lists[#sensor_param_lists + 1] = {}           -- start new param list only containing label and unit as string
-			else                                                         -- subscript is number of param for current multisensor/device
-				sensor_param_lists[#sensor_param_lists][sensor.param] = sensor.label .. "  " .. sensor.unit -- list presented in param select box
+				sensor_lists[#sensor_lists + 1] = {}					-- start new param list only containing label and unit as string
+			else														-- subscript is number of param for current multisensor/device
+				sensor_lists[#sensor_lists][sensor.param] = sensor.label .. "  " .. sensor.unit -- list presented in sensor select box
 			end
 		end
 	end	
@@ -251,18 +275,18 @@ local function setupForm(formID)
     form.addLabel({label=trans.label0,font=FONT_BOLD})
 	    
     form.addRow(2)
-    form.addLabel({label = "Sensor"})
-    form.addSelectbox(sensor_label_list, sensorIndex, true, sensorChanged)
+    form.addLabel({label = trans.labelp0})
+    form.addSelectbox(deviceLabel_list, deviceIndex, true, sensorChanged)
 		
 
-	if ( sensor_id_list and sensorIndex > 0 ) then	
+	if ( deviceId_list and deviceIndex > 0 ) then	
 		form.addRow(2)
-		form.addLabel({label = "Parameter Vario"})
-		form.addSelectbox(sensor_param_lists[sensorIndex], vario_param, true, paramVarioChanged)
+		form.addLabel({label = trans.labelp1})
+		form.addSelectbox(sensor_lists[deviceIndex], varioSens, true, sensVarioChanged)
 		
 		form.addRow(2)
-		form.addLabel({label = trans.paramAlti})
-		form.addSelectbox(sensor_param_lists[sensorIndex], altitude_param, true, paramAltitudeChanged)
+		form.addLabel({label = trans.labelp2})
+		form.addSelectbox(sensor_lists[deviceIndex], altitudeSens, true, sensAltitudeChanged)
 	end	
 		
 	form.setTitle(trans.title)
@@ -371,22 +395,13 @@ local function get_capacity_remaining()
 	else
 		for i,v in ipairs(percentList) do
 			if ( v[1] >= cell_voltage ) then
-				result =  v[2]
+				result = v[2]
 				break
 			end
 		end
 	end
 	collectgarbage()
 	return result
-end
-
-local function average(list)
-	local i 
-	local sum = 0
-	for i in next, list do
-		sum = sum + list[i]
-	end
-	return sum / #list
 end
 
 local function loop()
@@ -403,12 +418,12 @@ local function loop()
 	
 	rx_a1 = txtelemetry.RSSI[1]
 	rx_a2 = txtelemetry.RSSI[2]
-	
+		
 	cell_voltage = rx_voltage / cell_count
 	
 	remaining_capacity_percent = get_capacity_remaining()
 	
-	sensor = system.getSensorValueByID(sensorId, vario_param)
+	sensor = system.getSensorValueByID(sensorId, varioSens)
 	if(sensor and sensor.valid) then
 		climb = sensor.value
 		if ( climb == nil ) then
@@ -416,12 +431,11 @@ local function loop()
 		end
 	else
 		climb = 0.0
-		display_climb = 0.0
 	end
-	sensor = system.getSensorValueByID(sensorId, altitude_param)
+	sensor = system.getSensorValueByID(sensorId, altitudeSens)
 	if(sensor and sensor.valid) then
 		altitude = sensor.value
-	
+			
 		if (altitude == nil ) then
 			altitude = 0.0
 		end
@@ -431,31 +445,37 @@ local function loop()
 		if ( real_altitude < 0.0 ) then real_altitude = 0 end     
 		     
 		if real_altitude > max_altitude then max_altitude = real_altitude end
+		
+		first_average_list[#first_average_list + 1] = real_altitude
 		 
 		if ( tick ) then
 			tick = false
+
+			graph_altitude = average(first_average_list)
+			first_average_list = {}
 			
 			if ( time <= 200 ) then
 				time_scale = 1
 				if ( max_altitude > 5 ) then
 					altitude_scale = 100 / max_altitude
 				end
-				altitude_table[time] = real_altitude
+				altitude_table[time] = graph_altitude
 			else
-				average_list[#average_list + 1] = real_altitude
+				-- compress data
 				if ( #altitude_table == 200 and time <= 6400 ) then
 					for i = 1, 100 do
 						altitude_table[i-1] = (altitude_table[i-1] + altitude_table[i]) / 2
 						table.remove(altitude_table, i)
 					end
-					average_list = {}
 				end
+				average_list[#average_list + 1] = graph_altitude -- collect subsamples
 				if ( time <= 400 ) then
 					time_scale = 2
 					if ( time % 2 == 0 ) then
 						if ( max_altitude > 5 ) then
 							altitude_scale = 100 / max_altitude
 						end
+						-- average 
 						altitude_table[ ((time - 200) / 2 ) + 100 ] = average(average_list)
 						average_list = {}
 					end
@@ -505,7 +525,7 @@ local function loop()
 		end
 			
 		if(anVoltGo == 1 and newTime >= next_voltage_announcement) then
-			system.playNumber(rx_voltage + 0.01, 2, "V", "U Battery")
+			system.playNumber(rx_voltage, 2, "V", "U Battery")
 			next_voltage_announcement = newTime + 10000 -- say battery voltage every 10 seconds
 		end
 		
@@ -527,7 +547,7 @@ local function loop()
 		if ( resetOff ) then	-- transition to reset position (edge)
 			resetOff = false
 			altitude_table = {}
-		    altitude_table[0] = 0.0 
+		    altitude_table[0] = 0.0
 			altitude_offset = altitude;
 			max_altitude = 0
 		    time = 0
@@ -541,6 +561,7 @@ local function loop()
 			next_voltage_announcement = 0
 			next_voltage_alarm = 0
 			average_list = {}
+			first_average_list = {}
 		end
 	else
 		resetOff = true -- reset transition to reset position
@@ -550,7 +571,7 @@ local function loop()
 	-- print(collectgarbage("count"))   
 end
 
-local function init(code)
+local function init()
 	model = system.getProperty("Model")
 	owner = system.getUserName()
 	cell_count = system.pLoad("cell_count",1)
@@ -564,17 +585,17 @@ local function init(code)
 	altitude_table[0] = 0.0
 	ancorTime = system.getTimeCounter()
 	
-	vario_param = system.pLoad("vario_param", 0)
-	altitude_param = system.pLoad("altitude_param", 0)
+	varioSens = system.pLoad("varioSens", 0)
+	altitudeSens = system.pLoad("altitudeSens", 0)
 	sensorId = system.pLoad("sensorId", 0)
 
 	system.registerForm(1, MENU_APPS, trans.appName, setupForm)
-	system.registerTelemetry(1, trans.appName .. "   " .. model, 4, Page1) --registers a full size Window
+	system.registerTelemetry(1, trans.appName .. " " .. Version .. "    " .. model, 4, Page1) --registers a full size Window
 	
 	collectgarbage()
 end
 
-Version = "1.5"
+Version = "1.6"
 setLanguage()
 collectgarbage()
 return {init=init, loop=loop, author="nichtgedacht", version=Version, name=trans.appName}
