@@ -26,3 +26,12 @@ Lua script for Jeti DC/DS-16. Displays and graphs altitude data and shows some o
 * Switchable and repeated announcements of voltage and altitude
 * Alarm voice for undervoltage
 
+Install as follows:
+
+Apps/AltiGraph.lua (or .lc)
+
+Apps/AltiGraph/Screen.lua (or .lc)
+
+Apps/AltiGraph/Form.lua (or .lc)
+
+Lang/AltiGraph.jsn
