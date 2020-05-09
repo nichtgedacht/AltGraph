@@ -13,6 +13,7 @@ local first_average_list, average_list = {}, {}
 local altitude_table = {}
 local max_table_altitude = 0
 local resetOff, tick, display_tick = true, false, false
+local next_display_tick = 0
 local tickOffset = 0
 local climb = 0.0
 local display_climb, display_climb_list = 0.0, {}
@@ -162,22 +163,25 @@ end
 
 -- Flight time neu
 local function FlightTime()
-        
+    
 	local timeSw_val = system.getInputsVal(vars.timeSw)
 	resetSw_val = system.getInputsVal(vars.resSw)
         
 	newTime = system.getTimeCounter()
+	
+	if (newTime >= next_display_tick ) then
+		display_tick = true
+	end	
+	
+	if (display_tick == false) then
+		next_display_tick = newTime + 500
+	end
    	
 	if (timeSw_val == 1) then
 		
 		timeDiff = newTime - (ancorTime + tickOffset)
 		
-		if ( timeDiff >= 500 and timeDiff < 1000) then
-			display_tick = true
-		end	
-
 		if ( timeDiff >= 1000 ) then
-			display_tick = true
 			tick = true
 			time = time + 1
 			if ( time == 360000 ) then -- max 99 hours
@@ -356,6 +360,7 @@ local function loop()
 			     
 	else
 		rx_voltage = 0
+		display_rx_voltage = 0
 		rx_a1 = 0
 		rx_a2 = 0
 		rx_percent = 0
