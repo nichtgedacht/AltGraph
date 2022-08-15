@@ -4,7 +4,7 @@ local display_rx_voltage, rx_voltage_list = 0.0, {}
 local remaining_capacity_percent = 100
 local time, ancorTime, newTime, time_scale = 0, 0, 0, 1
 local std, min, sec = 0, 0, 0
-local next_altitude_announcement, next_voltage_announcement, next_time_announcement = 0, 0, 0
+local next_altitude_announcement, next_voltage_announcement = 0, 0
 local next_voltage_alarm = 0
 local rx_a1, rx_a2, rx_percent = 0, 0, 0
 local resetSw_val = 0
@@ -58,11 +58,6 @@ local function showDisplay()
 
 	local i, v, l, clmb
 	local sum_clmb = 0.0
-	local r, g, b
-	
-	lcd.setColor(0,0,0)
-	
-	r,g,b = lcd.getFgColor()
 	
 	if ( #display_climb_list == 10 ) then
 		table.remove(display_climb_list, 1)
@@ -109,13 +104,8 @@ local function showDisplay()
 	lcd.drawText(263 - (lcd.getTextWidth(FONT_MINI, string.format("%d", time_scale * 150 ))), 111, string.format("%d", time_scale * 150), FONT_MINI)
 	lcd.drawText(313 - (lcd.getTextWidth(FONT_MINI, string.format("%d", time_scale * 200 ))), 111, string.format("%d", time_scale * 200), FONT_MINI)
 		
-	-- draw before graph prevent destroying points of the graph
--- lcd.drawFilledRectangle(115 + i_max, 107 - math.floor( (max_table_altitude * altitude_scale) + 0.5), 1, math.floor( (max_table_altitude * altitude_scale) + 0.5), FONT_GRAYED)
-
-	lcd.setColor(255,0,0)
---	i_max = 100
-	lcd.drawLine (115 + i_max , 107 - math.floor( (max_table_altitude * altitude_scale) + 0.5), 115 + i_max, 107 )	
-    lcd.setColor(r,g,b) 
+	-- draw before graph prevent destroying points of the graph 
+	lcd.drawFilledRectangle(115 + i_max, 107 - math.floor( (max_table_altitude * altitude_scale) + 0.5), 1, math.floor( (max_table_altitude * altitude_scale) + 0.5), FONT_GRAYED)
 	
 	max_table_altitude = 0	-- reinit search of maximum, because data could be compressed inbetween
 	-- Graph
@@ -136,17 +126,7 @@ local function showDisplay()
 	-- Battery
 	lcd.drawRectangle( 10, 122, 50, 16)
 	lcd.drawRectangle( 59, 126, 5, 7)
-		
-	if ( rx_voltage <= voltage_alarm_dec_thresh ) then
-		lcd.setColor(255,0,0)
-	else
-		lcd.setColor(0,255,0)
-	end
-	
-	lcd.drawFilledRectangle( 11, 123, math.floor(remaining_capacity_percent / 2 + 0.5), 14)
-	
-	lcd.setColor(r,g,b)
-	
+	lcd.drawFilledRectangle( 10, 122, math.floor(remaining_capacity_percent / 2 + 0.5), 16)
 	-- Voltage
 	lcd.drawText(50, 141, "V", FONT_NORMAL)
 	lcd.drawText(48 - (lcd.getTextWidth(FONT_BIG, string.format("%1.2f", display_rx_voltage))), 139, string.format("%1.2f", display_rx_voltage), FONT_BIG)
@@ -272,17 +252,14 @@ local function loop()
 	end
 	sensor = system.getSensorValueByID(vars.deviceId, vars.altitudeSens)
 	if(sensor and sensor.valid) then
---	if(sensor) then
+
 		altitude = sensor.value
-		-- altitude = 10
 			
 		if (altitude == nil ) then
 			altitude = 0.0
 		end
 		
 		real_altitude = altitude - altitude_offset
-		
---		real_altitude = altitude
 		     
 		if ( real_altitude < 0.0 ) then real_altitude = 0 end     
 		     
@@ -365,23 +342,15 @@ local function loop()
 			end
 		end
 						
-		if(anAltitudeGo == 1 and anVoltGo ~= 1 and newTime >= next_altitude_announcement) then
+		if(anAltitudeGo == 1 and newTime >= next_altitude_announcement) then
 			system.playNumber(real_altitude, 1, "m", "AltRelat.")
 			next_altitude_announcement = newTime + 10000 -- say battery percentage every 10 seconds
 		end
 			
-		if(anVoltGo == 1 and anAltitudeGo ~= 1 and newTime >= next_voltage_announcement) then
+		if(anVoltGo == 1 and newTime >= next_voltage_announcement) then
 			system.playNumber(rx_voltage, 2, "V", "U Battery")
 			next_voltage_announcement = newTime + 10000 -- say battery voltage every 10 seconds
 		end
-		
-		if(anVoltGo == 1 and anAltitudeGo == 1 and newTime >= next_time_announcement) then
-			system.playNumber(std, 1, "h")
-			system.playNumber(min, 1, "min")
-			system.playNumber(sec, 1, "s")
-			next_time_announcement = newTime + 10000 -- say battery voltage every 10 seconds
-		end
-		
 		
 		if ( rx_voltage <= voltage_alarm_dec_thresh and vars.voltage_alarm_voice ~= "..." and newTime >= next_voltage_alarm ) then
 			system.messageBox(vars.trans.voltWarn,2)

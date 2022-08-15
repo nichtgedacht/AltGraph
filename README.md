@@ -20,6 +20,7 @@ Lua script for Jeti DC/DS-16. Displays and graphs altitude data and shows some o
 ![screen021](https://raw.githubusercontent.com/nichtgedacht/AltGraph/master/Screen021.bmp)
 
 * Runs on DC/DS-16 with FW 4.27 and above
+* For DS/DS-24 12 and 16 II a colored version is supplied
 * Translations DE and EN
 * File Lang/AltiGraph.jsn is common
 * Autoscale
@@ -30,8 +31,12 @@ Install as follows:
 
 Apps/AltiGraph.lua (or .lc)
 
-Apps/AltiGraph/Screen.lua (or .lc)
+Apps/AltiGraph/Screen.lua (or .lc)*
 
 Apps/AltiGraph/Form.lua (or .lc)
 
 Lang/AltiGraph.jsn
+
+*Do not use monochrom version for color displays and vice versa.
+Rename the filename of the monochrome version if needed. 
+
