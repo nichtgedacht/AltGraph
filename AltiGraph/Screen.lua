@@ -18,24 +18,52 @@ local tickOffset = 0
 local climb = 0.0
 local display_climb, display_climb_list = 0.0, {}
 local i_max = 0
+local color = true
 
 local vars = {}
 
--- maps cell voltages to remainig capacity
-local percentList	=	{{3,0},{3.093,1},{3.196,2},{3.301,3},{3.401,4},{3.477,5},{3.544,6},{3.601,7},{3.637,8},{3.664,9},
-						{3.679,10},{3.683,11},{3.689,12},{3.692,13},{3.705,14},{3.71,15},{3.713,16},{3.715,17},{3.72,18},
-						{3.731,19},{3.735,20},{3.744,21},{3.753,22},{3.756,23},{3.758,24},{3.762,25},{3.767,26},{3.774,27},
-						{3.78,28},{3.783,29},{3.786,30},{3.789,31},{3.794,32},{3.797,33},{3.8,34},{3.802,35},{3.805,36},
-						{3.808,37},{3.811,38},{3.815,39},{3.818,40},{3.822,41},{3.825,42},{3.829,43},{3.833,44},{3.836,45},
-						{3.84,46},{3.843,47},{3.847,48},{3.85,49},{3.854,50},{3.857,51},{3.86,52},{3.863,53},{3.866,54},
-						{3.87,55},{3.874,56},{3.879,57},{3.888,58},{3.893,59},{3.897,60},{3.902,61},{3.906,62},{3.911,63},
-						{3.918,64},{3.923,65},{3.928,66},{3.939,67},{3.943,68},{3.949,69},{3.955,70},{3.961,71},{3.968,72},
-						{3.974,73},{3.981,74},{3.987,75},{3.994,76},{4.001,77},{4.007,78},{4.014,79},{4.021,80},{4.029,81},
-						{4.036,82},{4.044,83},{4.052,84},{4.062,85},{4.074,86},{4.085,87},{4.095,88},{4.105,89},{4.111,90},
-						{4.116,91},{4.12,92},{4.125,93},{4.129,94},{4.135,95},{4.145,96},{4.176,97},{4.179,98},{4.193,99},
-						{4.2,100}}
+-- maps cell voltages of LiPo to remainig capacity
+local percentListLi = {{3,0},{3.093,1},{3.196,2},{3.301,3},{3.401,4},{3.477,5},{3.544,6},{3.601,7},{3.637,8},{3.664,9},
+					   {3.679,10},{3.683,11},{3.689,12},{3.692,13},{3.705,14},{3.71,15},{3.713,16},{3.715,17},{3.72,18},
+					   {3.731,19},{3.735,20},{3.744,21},{3.753,22},{3.756,23},{3.758,24},{3.762,25},{3.767,26},{3.774,27},
+					   {3.78,28},{3.783,29},{3.786,30},{3.789,31},{3.794,32},{3.797,33},{3.8,34},{3.802,35},{3.805,36},
+					   {3.808,37},{3.811,38},{3.815,39},{3.818,40},{3.822,41},{3.825,42},{3.829,43},{3.833,44},{3.836,45},
+					   {3.84,46},{3.843,47},{3.847,48},{3.85,49},{3.854,50},{3.857,51},{3.86,52},{3.863,53},{3.866,54},
+					   {3.87,55},{3.874,56},{3.879,57},{3.888,58},{3.893,59},{3.897,60},{3.902,61},{3.906,62},{3.911,63},
+					   {3.918,64},{3.923,65},{3.928,66},{3.939,67},{3.943,68},{3.949,69},{3.955,70},{3.961,71},{3.968,72},
+					   {3.974,73},{3.981,74},{3.987,75},{3.994,76},{4.001,77},{4.007,78},{4.014,79},{4.021,80},{4.029,81},
+					   {4.036,82},{4.044,83},{4.052,84},{4.062,85},{4.074,86},{4.085,87},{4.095,88},{4.105,89},{4.111,90},
+					   {4.116,91},{4.12,92},{4.125,93},{4.129,94},{4.135,95},{4.145,96},{4.176,97},{4.179,98},{4.193,99},
+					   {4.2,100}}
+ 
+-- maps cell voltages of NiMH to remainig capacity
+local percentListNi = {{1.028,0},{1.087,1},{1.118,2},{1.138,3},{1.153,4},{1.165,5},{1.175,6},{1.183,7},{1.190,8},{1.196,9},
+					   {1.202,10},{1.207,11},{1.212,12},{1.216,13},{1.220,14},{1.224,15},{1.228,16},{1.231,17},{1.234,18},
+					   {1.237,19},{1.240,20},{1.243,21},{1.245,22},{1.248,23},{1.250,24},{1.252,25},{1.254,26},{1.256,27},
+					   {1.258,28},{1.259,29},{1.261,30},{1.263,31},{1.264,32},{1.266,33},{1.267,34},{1.268,35},{1.270,36},
+					   {1.270,37},{1.272,38},{1.272,39},{1.274,40},{1.275,41},{1.276,42},{1.276,43},{1.277,44},{1.278,45},
+					   {1.279,46},{1.280,47},{1.281,48},{1.282,49},{1.282,50},{1.283,51},{1.284,52},{1.284,53},{1.285,54},
+					   {1.285,55},{1.286,56},{1.287,57},{1.287,58},{1.287,59},{1.288,60},{1.288,61},{1.289,62},{1.289,63},
+					   {1.290,64},{1.290,65},{1.290,66},{1.291,67},{1.292,68},{1.292,69},{1.292,70},{1.293,71},{1.294,72},
+					   {1.294,73},{1.295,74},{1.296,75},{1.298,76},{1.299,77},{1.300,78},{1.302,79},{1.303,80},{1.305,81},
+					   {1.308,82},{1.310,83},{1.314,84},{1.317,85},{1.321,86},{1.326,87},{1.331,88},{1.337,89},{1.343,90},
+					   {1.351,91},{1.358,92},{1.366,93},{1.375,94},{1.386,95},{1.397,96},{1.410,97},{1.425,98},{1.445,99},
+					   {1.487,100}}
+					   
 
 local function init (stpvars)
+	
+	local device
+	
+	device = system.getDeviceType ()
+	
+	-- print (device)
+	
+	if ( device == "JETI DC-16" or device == "JETI DS-16" ) then
+		color = false
+	end
+	
+	-- print (color)
 	
 	vars = stpvars
 	voltage_alarm_dec_thresh = vars.voltage_alarm_thresh / 10
@@ -60,9 +88,10 @@ local function showDisplay()
 	local sum_clmb = 0.0
 	local r, g, b
 	
-	lcd.setColor(0,0,0)
-	
-	r,g,b = lcd.getFgColor()
+	if ( color ) then
+		lcd.setColor(0,0,0)
+		r,g,b = lcd.getFgColor()
+	end	
 	
 	if ( #display_climb_list == 10 ) then
 		table.remove(display_climb_list, 1)
@@ -109,13 +138,14 @@ local function showDisplay()
 	lcd.drawText(263 - (lcd.getTextWidth(FONT_MINI, string.format("%d", time_scale * 150 ))), 111, string.format("%d", time_scale * 150), FONT_MINI)
 	lcd.drawText(313 - (lcd.getTextWidth(FONT_MINI, string.format("%d", time_scale * 200 ))), 111, string.format("%d", time_scale * 200), FONT_MINI)
 		
-	-- draw before graph prevent destroying points of the graph
--- lcd.drawFilledRectangle(115 + i_max, 107 - math.floor( (max_table_altitude * altitude_scale) + 0.5), 1, math.floor( (max_table_altitude * altitude_scale) + 0.5), FONT_GRAYED)
-
-	lcd.setColor(255,0,0)
---	i_max = 100
-	lcd.drawLine (115 + i_max , 107 - math.floor( (max_table_altitude * altitude_scale) + 0.5), 115 + i_max, 107 )	
-    lcd.setColor(r,g,b) 
+	-- max altitude line, draw before graph prevent destroying points of the graph
+	if ( color ) then
+	    lcd.setColor(255,0,0)
+	    lcd.drawLine (115 + i_max , 107 - math.floor( (max_table_altitude * altitude_scale) + 0.5), 115 + i_max, 107 )	
+        lcd.setColor(r,g,b)
+	else
+		lcd.drawFilledRectangle(115 + i_max, 107 - math.floor( (max_table_altitude * altitude_scale) + 0.5), 1, math.floor( (max_table_altitude * altitude_scale) + 0.5), FONT_GRAYED)
+	end
 	
 	max_table_altitude = 0	-- reinit search of maximum, because data could be compressed inbetween
 	-- Graph
@@ -136,17 +166,20 @@ local function showDisplay()
 	-- Battery
 	lcd.drawRectangle( 10, 122, 50, 16)
 	lcd.drawRectangle( 59, 126, 5, 7)
-		
-	if ( rx_voltage <= voltage_alarm_dec_thresh ) then
-		lcd.setColor(255,0,0)
+	
+	if ( color ) then
+	    if ( rx_voltage <= voltage_alarm_dec_thresh ) then
+		    lcd.setColor(255,0,0)
+	    else
+		    lcd.setColor(0,255,0)
+	    end	
+		lcd.drawFilledRectangle( 11, 123, math.floor(remaining_capacity_percent / 2 + 0.5), 14)
+	
+	    lcd.setColor(r,g,b)
 	else
-		lcd.setColor(0,255,0)
-	end
-	
-	lcd.drawFilledRectangle( 11, 123, math.floor(remaining_capacity_percent / 2 + 0.5), 14)
-	
-	lcd.setColor(r,g,b)
-	
+		lcd.drawFilledRectangle( 10, 122, math.floor(remaining_capacity_percent / 2 + 0.5), 16)
+	end	
+		
 	-- Voltage
 	lcd.drawText(50, 141, "V", FONT_NORMAL)
 	lcd.drawText(48 - (lcd.getTextWidth(FONT_BIG, string.format("%1.2f", display_rx_voltage))), 139, string.format("%1.2f", display_rx_voltage), FONT_BIG)
@@ -221,22 +254,43 @@ end
 
 -- Count percentage from cell voltage
 local function get_capacity_remaining()
-	result=0
-	if(cell_voltage > 4.2 or cell_voltage < 3.00)then
-		if(cell_voltage > 4.2)then
-			result=100
-		end
-		if(cell_voltage < 3.00)then
-			result=0
-		end
-	else
-		for i,v in ipairs(percentList) do
-			if ( v[1] >= cell_voltage ) then
-				result = v[2]
-				break
+	
+	-- LiPo
+	if (  cell_voltage > 2 ) then
+		if (cell_voltage > 4.2 or cell_voltage < 3.00) then
+			if (cell_voltage > 4.2)then
+				result=100
+			end
+			if (cell_voltage < 3.00) then
+				result=0
+			end
+		else
+			for i,v in ipairs(percentListLi) do
+				if ( v[1] >= cell_voltage ) then
+					result = v[2]
+					break
+				end
 			end
 		end
+	-- NiMH	
+	else
+		if (cell_voltage > 1.445 or cell_voltage < 1.028) then
+			if (cell_voltage > 1.445) then
+				result=100
+			end
+			if (cell_voltage < 1.028) then
+				result=0
+			end
+		else		
+			for i,v in ipairs(percentListNi) do
+				if ( v[1] >= cell_voltage ) then
+					result = v[2]
+					break
+				end
+			end
+		end	
 	end
+	
 	collectgarbage()
 	return result
 end
@@ -392,6 +446,7 @@ local function loop()
 	else
 		rx_voltage = 0
 		display_rx_voltage = 0
+		remaining_capacity_percent = 0
 		rx_a1 = 0
 		rx_a2 = 0
 		rx_percent = 0

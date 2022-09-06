@@ -1,6 +1,6 @@
  #AltGraph
 
-Lua script for Jeti DC/DS-16. Displays and graphs altitude data and shows some other info 
+Lua script for Jeti DC/DS-1X (II). Displays and graphs altitude data and shows some other info 
 
 ![screen000](https://raw.githubusercontent.com/nichtgedacht/AltGraph/master/Screen000.bmp)
 ![screen001](https://raw.githubusercontent.com/nichtgedacht/AltGraph/master/Screen001.bmp)
@@ -19,24 +19,20 @@ Lua script for Jeti DC/DS-16. Displays and graphs altitude data and shows some o
 ![screen020](https://raw.githubusercontent.com/nichtgedacht/AltGraph/master/Screen020.bmp)
 ![screen021](https://raw.githubusercontent.com/nichtgedacht/AltGraph/master/Screen021.bmp)
 
-* Runs on DC/DS-16 with FW 4.27 and above
-* For DS/DS-24 12 and 16 II a colored version is supplied
+* Runs on any Jeti DS/DC TX with FW 4.27 and above
 * Translations DE and EN
-* File Lang/AltiGraph.jsn is common
-* Autoscale
 * Switchable and repeated announcements of voltage and altitude
+* If both switches are on, flight time will be announced
 * Alarm voice for undervoltage
 
 Install as follows:
 
 Apps/AltiGraph.lua (or .lc)
 
-Apps/AltiGraph/Screen.lua (or .lc)*
+Apps/AltiGraph/Screen.lua (or .lc)
 
 Apps/AltiGraph/Form.lua (or .lc)
 
 Lang/AltiGraph.jsn
-
-*Do not use monochrom version for color displays and vice versa.
-Rename the filename of the monochrome version if needed. 
+ 
 

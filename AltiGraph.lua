@@ -1,7 +1,7 @@
 collectgarbage()
 
 local setupvars = {}
-setupvars.Version = "2.0"
+setupvars.Version = "2.2"
 local model, owner = " ", " "
 local trans
 --local mem, maxmem = 0, 0 -- for debug only

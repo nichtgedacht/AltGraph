@@ -93,7 +93,7 @@ local function setup(vars)
 	form.addLabel({label=vars.trans.label3,font=FONT_BOLD})
 
 	form.addRow(2)
-	form.addLabel({label=vars.trans.voltAlarmVoice, width=140})
+	form.addLabel({label=vars.trans.voltAlarmVoice})
 	form.addAudioFilebox(vars.voltage_alarm_voice,
 						function (value)
 							vars.voltage_alarm_voice = value
@@ -107,7 +107,7 @@ local function setup(vars)
 		
 	form.addRow(2)
 	form.addLabel({label=vars.trans.cellcnt, width=220})
-	form.addIntbox(vars.cell_count, 1, 2, 1, 0, 1,
+	form.addIntbox(vars.cell_count, 1, 4, 1, 0, 1,
 						function (value)
 							vars.cell_count = value
 							system.pSave("cell_count", vars.cell_count)
