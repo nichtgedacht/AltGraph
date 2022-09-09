@@ -55,15 +55,11 @@ local function init (stpvars)
 	
 	local device
 	
-	device = system.getDeviceType ()
+	device = system.getDeviceType()
 	
-	-- print (device)
-	
-	if ( device == "JETI DC-16" or device == "JETI DS-16" ) then
+	if ( device == "JETI DC-16" or device == "JETI DS-16" or device == "JETI DC-14" or device == "JETI DS-14") then
 		color = false
 	end
-	
-	-- print (color)
 	
 	vars = stpvars
 	voltage_alarm_dec_thresh = vars.voltage_alarm_thresh / 10
@@ -164,8 +160,8 @@ local function showDisplay()
 	end
 	
 	-- Battery
-	lcd.drawRectangle( 10, 122, 50, 16)
-	lcd.drawRectangle( 59, 126, 5, 7)
+	lcd.drawRectangle( 10, 122, 52, 16)
+	lcd.drawRectangle( 61, 126, 5, 7)
 	
 	if ( color ) then
 	    if ( rx_voltage <= voltage_alarm_dec_thresh ) then
@@ -177,7 +173,11 @@ local function showDisplay()
 	
 	    lcd.setColor(r,g,b)
 	else
-		lcd.drawFilledRectangle( 10, 122, math.floor(remaining_capacity_percent / 2 + 0.5), 16)
+		if ( rx_voltage <= voltage_alarm_dec_thresh ) then
+			lcd.drawFilledRectangle( 11, 123, math.floor(remaining_capacity_percent / 2 + 0.5), 14, FONT_GRAYED)
+		else	
+			lcd.drawFilledRectangle( 11, 123, math.floor(remaining_capacity_percent / 2 + 0.5), 14)
+		end
 	end	
 		
 	-- Voltage
