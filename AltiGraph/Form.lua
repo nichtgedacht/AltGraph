@@ -5,11 +5,36 @@ local function setup(vars)
 
   for index,sensor in ipairs(system.getSensors()) do 
     if(sensor.param > 0) then
+      -- both lists have same index
       selectList[#selectList+1] = string.format("%s - %s", sensor.sensorName, sensor.label)
       sensorList[#sensorList+1] = sensor
     end 
   end
-
+  
+  -- regenerate altitudeIndex if other sensors of the device where enabled/disabled
+  -- in this case the ID of the sensor (param) stays the same but the corresponding index of the
+  -- list of sensors could be changed
+  if ( vars.altitudeSens > 0 ) then
+    for k,v in ipairs(sensorList) do
+      if ( sensorList[k].param == vars.altitudeSens ) then
+        vars.altitudeIndex = k
+        break
+      end
+    end
+  end
+  
+  -- regenerate varioIndex if other sensors of the device where enabled/disabled
+  -- in this case the ID of the sensor (param) stays the same but the corresponding index of the
+  -- list of sensors could be changed
+  if ( vars.varioSens > 0 ) then
+    for k,v in ipairs(sensorList) do
+      if ( sensorList[k].param == vars.varioSens ) then
+        vars.varioIndex = k
+        break
+      end
+    end
+  end
+  
   form.addRow(1)
   form.addLabel({label=vars.trans.label0,font=FONT_BOLD})
     
