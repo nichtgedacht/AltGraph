@@ -106,8 +106,6 @@ local function init()
   setupvars.altitudeSens = system.pLoad("altitudeSens", 0)
   setupvars.varioDeviceId = system.pLoad("varioDeviceId", 0)
   setupvars.altitudeDeviceId = system.pLoad("altitudeDeviceId", 0)
-  setupvars.varioIndex = system.pLoad("varioIndex", 0)
-  setupvars.altitudeIndex = system.pLoad("altitudeIndex", 0)
   setupvars.trans = trans
 
   Screen = require "AltiGraph/Screen"

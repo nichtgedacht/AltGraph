@@ -2,35 +2,21 @@ local function setup(vars)
 
   local sensorList = {}
   local selectList={}
-
-  for index,sensor in ipairs(system.getSensors()) do 
+  local varioIndex = -1
+  local altitudeIndex = -1
+  
+  for index,sensor in ipairs(system.getSensors()) do
     if(sensor.param > 0) then
-      -- both lists have same index
+      -- both lists have same index and contain sensors only
       selectList[#selectList+1] = string.format("%s - %s", sensor.sensorName, sensor.label)
       sensorList[#sensorList+1] = sensor
-    end 
-  end
-  
-  -- regenerate altitudeIndex if other sensors of the device where enabled/disabled
-  -- in this case the ID of the sensor (param) stays the same but the corresponding index of the
-  -- list of sensors could be changed
-  if ( vars.altitudeSens > 0 ) then
-    for k,v in ipairs(sensorList) do
-      if ( sensorList[k].param == vars.altitudeSens ) then
-        vars.altitudeIndex = k
-        break
+      -- regenerate index even if other sensors or whole devices were enabled disabled
+      if (sensor.param == vars.altitudeSens and sensor.id == vars.altitudeDeviceId) then
+        altitudeIndex = #sensorList
       end
-    end
-  end
-  
-  -- regenerate varioIndex if other sensors of the device where enabled/disabled
-  -- in this case the ID of the sensor (param) stays the same but the corresponding index of the
-  -- list of sensors could be changed
-  if ( vars.varioSens > 0 ) then
-    for k,v in ipairs(sensorList) do
-      if ( sensorList[k].param == vars.varioSens ) then
-        vars.varioIndex = k
-        break
+      -- regenerate index even if other sensors or whole devices were enabled disabled
+      if (sensor.param == vars.varioSens and sensor.id == vars.varioDeviceId) then
+        varioIndex = #sensorList
       end
     end
   end
@@ -40,29 +26,25 @@ local function setup(vars)
     
   form.addRow(2)
   form.addLabel({label = vars.trans.labelp1, width=85})
-  form.addSelectbox (selectList, vars.varioIndex, true,
+  form.addSelectbox (selectList, varioIndex, true,
             function (value)
               if value>0 then
                 vars.varioDeviceId  = sensorList[value].id
                 system.pSave("varioDeviceId", vars.varioDeviceId)
                 vars.varioSens = sensorList[value].param
                 system.pSave("varioSens", vars.varioSens)
-                vars.varioIndex = value
-                system.pSave("varioIndex", vars.varioIndex)
-              end      
+               end      
             end, {alignRight = false, width = 240} )
       
   form.addRow(2)
   form.addLabel({label = vars.trans.labelp2, width=85})
-  form.addSelectbox (selectList, vars.altitudeIndex, true,
+  form.addSelectbox (selectList, altitudeIndex, true,
             function (value)
               if value>0 then
                 vars.altitudeDeviceId  = sensorList[value].id
                 system.pSave("altitudeDeviceId", vars.altitudeDeviceId)
                 vars.altitudeSens = sensorList[value].param
                 system.pSave("altitudeSens", vars.altitudeSens)
-                vars.altitudeIndex = value
-                system.pSave("altitudeIndex", vars.altitudeIndex)
               end      
             end, {alignRight = false, width = 240} )
     
