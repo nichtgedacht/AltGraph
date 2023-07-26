@@ -33,6 +33,6 @@ Apps/AltiGraph/Screen.lua (or .lc)
 
 Apps/AltiGraph/Form.lua (or .lc)
 
-Lang/AltiGraph.jsn
+Apps/Lang/AltiGraph.jsn
  
 
