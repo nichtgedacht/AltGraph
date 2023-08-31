@@ -1,7 +1,7 @@
 collectgarbage()
 
 local setupvars = {}
-setupvars.Version = "3.0"
+setupvars.Version = "3.1"
 local model, owner = " ", " "
 local trans
 --local mem, maxmem = 0, 0 -- for debug only
@@ -106,6 +106,7 @@ local function init()
   setupvars.altitudeSens = system.pLoad("altitudeSens", 0)
   setupvars.varioDeviceId = system.pLoad("varioDeviceId", 0)
   setupvars.altitudeDeviceId = system.pLoad("altitudeDeviceId", 0)
+  setupvars.resAlti = system.pLoad("resAlti", 0)
   setupvars.trans = trans
 
   Screen = require "AltiGraph/Screen"

@@ -463,7 +463,9 @@ local function loop()
       resetOff = false
       altitude_table = {}
       altitude_table[0] = 0.0
-      altitude_offset = altitude;
+      if (vars.resAlti == 1) then
+        altitude_offset = altitude;
+      end
       max_altitude = 0
       time = 0
       std = 0

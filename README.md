@@ -1,29 +1,23 @@
- #AltGraph
+# AltiGraph
 
-Lua script for Jeti DC/DS-1X (II). Displays and graphs altitude data and shows some other info 
+Lua script for Jeti DC/DS-1X (II). Displays and graphs altitude data and shows some other info
 
-![screen000](https://raw.githubusercontent.com/nichtgedacht/AltGraph/master/Screen000.bmp)
-![screen001](https://raw.githubusercontent.com/nichtgedacht/AltGraph/master/Screen001.bmp)
-![screen003](https://raw.githubusercontent.com/nichtgedacht/AltGraph/master/Screen003.bmp)
-![screen004](https://raw.githubusercontent.com/nichtgedacht/AltGraph/master/Screen004.bmp)
-![screen007](https://raw.githubusercontent.com/nichtgedacht/AltGraph/master/Screen007.bmp)
-![screen008](https://raw.githubusercontent.com/nichtgedacht/AltGraph/master/Screen008.bmp)
-![screen012](https://raw.githubusercontent.com/nichtgedacht/AltGraph/master/Screen012.bmp)
-![screen013](https://raw.githubusercontent.com/nichtgedacht/AltGraph/master/Screen013.bmp)
-![screen014](https://raw.githubusercontent.com/nichtgedacht/AltGraph/master/Screen014.bmp)
-![screen015](https://raw.githubusercontent.com/nichtgedacht/AltGraph/master/Screen015.bmp)
-![screen016](https://raw.githubusercontent.com/nichtgedacht/AltGraph/master/Screen016.bmp)
-![screen017](https://raw.githubusercontent.com/nichtgedacht/AltGraph/master/Screen017.bmp)
-![screen018](https://raw.githubusercontent.com/nichtgedacht/AltGraph/master/Screen018.bmp)
-![screen019](https://raw.githubusercontent.com/nichtgedacht/AltGraph/master/Screen019.bmp)
-![screen020](https://raw.githubusercontent.com/nichtgedacht/AltGraph/master/Screen020.bmp)
-![screen021](https://raw.githubusercontent.com/nichtgedacht/AltGraph/master/Screen021.bmp)
-
+![screen001](doc/Screen001.bmp)
+![screen002](doc/Screen002.bmp)
+![screen003](doc/Screen003.bmp)
+![screen004](doc/Screen004.bmp)
+![screen005](doc/Screen005.bmp)
+![screen006](doc/Screen006.bmp)
+![screen007](doc/Screen007.bmp)
+![screen008](doc/Screen008.bmp)
+![screen009](doc/Screen009.bmp)
+![screen010](doc/Screen010.bmp)
+   
 * Runs on any Jeti DS/DC TX with FW 4.27 and above
 * Translations DE and EN
 * Switchable and repeated announcements of voltage and altitude
 * If both switches are on, flight time will be announced
-* Alarm voice for undervoltage
+* Alarm voice for undervoltage  
 
 Install as follows:
 

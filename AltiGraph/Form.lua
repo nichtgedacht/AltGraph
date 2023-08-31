@@ -4,7 +4,9 @@ local function setup(vars)
   local selectList={}
   local varioIndex = -1
   local altitudeIndex = -1
-  
+  local checkBoxValue
+  local checkBoxIndex
+
   for index,sensor in ipairs(system.getSensors()) do
     if(sensor.param > 0) then
       -- both lists have same index and contain sensors only
@@ -124,6 +126,26 @@ local function setup(vars)
             function (value)
               vars.resSw = value
               system.pSave("resSw", vars.resSw)
+            end )
+
+  form.addRow(2)
+  form.addLabel({label=vars.trans.resAlti, width=275})
+  -- pSave cannot save bool values, grrr
+  if ( vars.resAlti == 0 ) then
+    checkBoxValue = false
+  else
+    checkBoxValue = true
+  end
+  checkBoxIndex = form.addCheckbox(checkBoxValue,
+            function (value)
+              checkBoxValue = not value
+              form.setValue(checkBoxIndex,checkBoxValue) -- instead of form.reinit()
+              if ( checkBoxValue == true ) then
+                vars.resAlti = 1
+              else
+                vars.resAlti = 0
+              end
+              system.pSave("resAlti", vars.resAlti)
             end )
 
   form.addSpacer(318,7)
