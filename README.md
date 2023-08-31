@@ -2,16 +2,16 @@
 
 Lua script for Jeti DC/DS-1X (II). Displays and graphs altitude data and shows some other info
 
-![screen001](doc/Screen001.bmp)
-![screen002](doc/Screen002.bmp)
-![screen003](doc/Screen003.bmp)
-![screen004](doc/Screen004.bmp)
-![screen005](doc/Screen005.bmp)
-![screen006](doc/Screen006.bmp)
-![screen007](doc/Screen007.bmp)
-![screen008](doc/Screen008.bmp)
-![screen009](doc/Screen009.bmp)
-![screen010](doc/Screen010.bmp)
+![screen001](doc/Screen001.png)
+![screen002](doc/Screen002.png)
+![screen003](doc/Screen003.png)
+![screen004](doc/Screen004.png)
+![screen005](doc/Screen005.png)
+![screen006](doc/Screen006.png)
+![screen007](doc/Screen007.png)
+![screen008](doc/Screen008.png)
+![screen009](doc/Screen009.png)
+![screen010](doc/Screen010.png)
    
 * Runs on any Jeti DS/DC TX with FW 4.27 and above
 * Translations DE and EN
